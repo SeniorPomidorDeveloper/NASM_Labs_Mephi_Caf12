@@ -2,6 +2,7 @@ bits 64
 
 section .text
     global get_envp
+    global get_value_envp
 
 ; Параметры:
 ;   rdi - указатель на имя переменной (строка с нулём на конце)
@@ -18,8 +19,8 @@ get_envp:
 
 search_loop:
     mov rcx, [rsi]         ; Текущая переменная
-    cmp rcx, 0
-    je exit
+    test rcx, rcx
+    jz exit
 
     ; Сравнение начала строки с "PATH="
     mov rdx, 0
@@ -42,4 +43,16 @@ exit:
     pop rdx
     pop rax
     pop rcx
+    ret
+
+; Параметры:
+;   rsi - указатель на имя переменную
+; Возвращает:
+;   rsi - указатель на строку содержащую значение переменной
+get_value_envp:
+
+    get_value_envp_loop:
+        inc rsi
+        cmp byte[rsi - 1], '='
+        jne get_value_envp_loop
     ret
