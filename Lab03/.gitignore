@@ -1,2 +1,3 @@
 *.txt
-build
+build/*.o
+build/run
