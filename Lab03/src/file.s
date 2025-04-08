@@ -1,3 +1,5 @@
+bits 64
+
 section .data
     global STDIN
     global STDOUT
@@ -24,10 +26,37 @@ section .data
     O_TRUNC  equ 0x200 ; Очистить файл при открытии
 
 section .text
+    global print
     global open_file
     global read_file
     global write_file
     global close_file
+
+    extern strlen
+
+; Параметры:
+;   rsi - указатель на строку с детерменирующим нулём.
+; Возвращает:
+;   rax - кол-во записанных байт (если 0 - дошли до конца файла; если <0 - ошибка записи; если >0 - запись файла прошло успешно)
+print:
+    push rdx
+    push rdi
+    push rax
+
+    mov rdi, rsi
+    mov al, 0
+    call strlen
+
+    mov rdx, rax
+    mov rdi, STDOUT
+    call write_file
+
+    pop rax
+    pop rdi
+    pop rdx
+    ret
+
+
 
 ; Параметры:
 ;   rdi - указатель на имя файла (строка с нулём на конце)
@@ -55,6 +84,8 @@ read_file:
 ;   rdx - кол-во записываемых байт
 ;   rdi - файловый дескриптор
 ;   rsi - указатель на записываемые данные
+; Возвращает:
+;   rax - rax - кол-во записанных байт (если 0 - дошли до конца файла; если <0 - ошибка записи; если >0 - запись файла прошло успешно)
 write_file:
     mov rax, SYS_FWRITE ; syscall fwrite()
     syscall
