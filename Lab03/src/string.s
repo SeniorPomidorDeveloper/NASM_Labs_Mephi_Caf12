@@ -3,6 +3,7 @@ bits 64
 section .text
     global strlen
     global find_char
+    global find_nchar
     global strcmp
     global strncmp
 
@@ -18,32 +19,66 @@ strlen:
     sub rax, rdi
     pop rsi
     ret
-    
 
 ; Параметры:
-;   rdi - указатель на начало строки
-;   al  - символ который мы ищем
+;   rcx - указатель на начало строки
+;   rax - символы которые мы ищем
+;   r8 - их кол-во
 ; Возвращает:
-;   rsi - указатель на найденный символ (если не найден то -1)
+;   rbx - указатель на найденный символ (если не найден то -1)
 find_char:
+    push rsi
     push rdx
-    mov rsi, rdi
-
+    mov rbx, rcx
     find_loop:
-        mov dl, byte[rsi] 
-        inc rsi
+        mov dl, byte[rbx] 
+        inc rbx
         cmp dl, 10
-        je nfound
-        cmp dl, al
-        jne find_loop
-found:
-    dec rsi
+        je done
+        cmp dl, 0
+        je done
+        mov rsi, 0
+        cmp_loop_char:
+            cmp dl, byte[rax + rsi]
+            je done
+            inc rsi
+            cmp rsi, r8
+            jne cmp_loop_char
+        jmp find_loop
+done:
+    dec rbx
     pop rdx
+    pop rsi
     ret
 
-nfound:
-    mov rsi, -1
+; Параметры:
+;   rcx - указатель на начало строки
+;   rax - символы которые не нужны
+;   r8 - их кол-во
+; Возвращает:
+;   rbx - указатель на найденный символ (если не найден то -1)
+find_nchar:
+    push rsi
+    push rdx
+    mov rbx, rcx
+    find_loop_nchar:
+        mov dl, byte[rbx] 
+        inc rbx
+        cmp dl, 10
+        je done_nchar
+        cmp dl, 0
+        je done_nchar
+        mov rsi, 0
+        cmp_loop_nchar:
+            cmp dl, byte[rax + rsi]
+            je find_loop_nchar
+            inc rsi
+            cmp rsi, r8
+            jne cmp_loop_nchar
+done_nchar:
+    dec rbx
     pop rdx
+    pop rsi
     ret
 
 ; Параметры:

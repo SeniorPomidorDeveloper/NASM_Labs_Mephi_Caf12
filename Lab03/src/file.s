@@ -13,8 +13,8 @@ section .data
     ; Константы для системных вызовов
     SYS_FOPEN  equ 2    ; Номер syscall для fopen()
     SYS_FREAD  equ 0    ; Номер syscall для fread()
-    SYS_FWRITE equ 1   ; Номер syscall для fwrite()
-    SYS_FCLOSE equ 3   ; Номер syscall для fclose()
+    SYS_FWRITE equ 1    ; Номер syscall для fwrite()
+    SYS_FCLOSE equ 3    ; Номер syscall для fclose()
 
     STDIN  equ 0        ; Файловый дескриптор stdin
     STDOUT equ 1       ; Файловый дескриптор stdout
@@ -83,7 +83,7 @@ read_file:
 ;   rdi - файловый дескриптор
 ;   rsi - указатель на записываемые данные
 ; Возвращает:
-;   rax - rax - кол-во записанных байт (если 0 - дошли до конца файла; если <0 - ошибка записи; если >0 - запись файла прошло успешно)
+;   rax - кол-во записанных байт (если 0 - дошли до конца файла; если <0 - ошибка записи; если >0 - запись файла прошло успешно)
 write_file:
     mov rax, SYS_FWRITE ; syscall fwrite()
     syscall
