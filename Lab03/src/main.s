@@ -51,27 +51,30 @@ _start:
     mov rdi, rax        ; Дескриптор
     mov rsi, buffer     ; Начало буфера
     mov rdx, buffer_len ; Длина буфера
-    mov r12, rsi        ; Конец буфера
-    add r12, rdx
-    dec r12
     find_space:
         call read_file
         cmp rax, 0
         jl error_read_file 
 
+        mov r9, rsi        ; Конец буфера
+        add r9, rax
+        dec r9
+
         call close_file
-
-        cmp rax, buffer_len
-        jne del_spaces
-
-        cmp byte[r12], 0
-        jne error_buffer
+        mov rbx, rsi
 
         del_spaces:
-            mov rcx, rsi
+            mov rcx, rbx
             mov rax, spaces
             mov r8, 2
             call find_nchar
+
+            cmp byte[rbx], 10
+            je write_end
+            
+            cmp r9, rbx
+            jbe ok
+
             mov rsi, rbx
 
         find_first_space:
@@ -79,6 +82,7 @@ _start:
             mov rax, spaces
 
             call find_char
+
             mov r10, rbx
             sub r10, rsi ; Длина первого слова
 
@@ -88,20 +92,32 @@ _start:
         cmp rax, 0
         jle error_write_file
 
+        cmp byte[rbx], 10
+        je write_end
+
+        cmp r9, rbx
+        jbe ok
+
         find_other_spaces:
             cmp byte[rbx], 10
-            je ok
+            je write_end
             
             mov rcx, rbx
             mov rax, spaces
             call find_nchar
 
+            cmp r9, rbx
+            jb write_end 
+
             cmp byte[rbx], 10
-            je ok
+            je write_end
 
             mov rcx, rbx
             mov rax, spaces
             call find_char
+
+            cmp r9, rbx
+            jb ok
 
             mov r11, rbx ; Длина текущего
             sub r11, rcx
@@ -124,13 +140,18 @@ _start:
 
             jmp find_other_spaces
 
-ok:
+write_end:
     mov rdx, 1
     mov rsi, end
     call write_file
     cmp rax, 0
     jle error_write_file
+    inc rbx
+    cmp r9, rbx
+    jb ok
+    jmp del_spaces
 
+ok:
     mov rdi, 0
     jmp exit
 

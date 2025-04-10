@@ -24,6 +24,7 @@ strlen:
 ;   rcx - указатель на начало строки
 ;   rax - символы которые мы ищем
 ;   r8 - их кол-во
+;   r9 - конец файла
 ; Возвращает:
 ;   rbx - указатель на найденный символ (если не найден то -1)
 find_char:
@@ -31,6 +32,8 @@ find_char:
     push rdx
     mov rbx, rcx
     find_loop:
+        cmp r9, rbx
+        jb done
         mov dl, byte[rbx] 
         inc rbx
         cmp dl, 10
@@ -55,6 +58,7 @@ done:
 ;   rcx - указатель на начало строки
 ;   rax - символы которые не нужны
 ;   r8 - их кол-во
+;   r9 - конец файла
 ; Возвращает:
 ;   rbx - указатель на найденный символ (если не найден то -1)
 find_nchar:
@@ -62,6 +66,8 @@ find_nchar:
     push rdx
     mov rbx, rcx
     find_loop_nchar:
+        cmp r9, rbx
+        jb done_nchar
         mov dl, byte[rbx] 
         inc rbx
         cmp dl, 10
