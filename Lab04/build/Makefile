@@ -1,11 +1,11 @@
 AS = /usr/bin/nasm
-LD = /usr/bin/ld
+LD = /usr/bin/gcc
 
 ASFLAGS = -g -f elf64
-LDFLAGS = -static
+LDFLAGS = -no-pie -lc -lm
 
 SRC_DIR = ../src
-FILES = main.s string.s file.s envp.s
+FILES = main.s series.s
 SRCS = $(addprefix $(SRC_DIR)/, $(FILES))
 OBJS = $(SRCS:.s=.o)
 
