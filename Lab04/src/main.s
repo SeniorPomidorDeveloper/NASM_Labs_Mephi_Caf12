@@ -30,6 +30,10 @@ main:
     push rbp
     mov rbp, rsp
     sub rsp, 32
+
+    cmp rdi, 1         ; Если argc <= 1, то аргументов нет
+    jbe .exit
+    mov r15, qword[rsi + 8]
     
     ; Выводим приглашение
     mov rdi, prompt_msg
@@ -62,6 +66,7 @@ main:
     call left
     movss dword[rbp-4], xmm0
 
+    mov rdi, r15
     movss xmm0, dword[x]
     movss xmm1, dword[rbp-4]
     movss xmm2, dword[accuracy]
@@ -77,7 +82,8 @@ main:
     mov rdi, result_fmt
     mov eax, 2  ; Три аргумента с плавающей точкой
     call printf
-    
+
+.exit:    
     ; Выход
     xor eax, eax
     leave

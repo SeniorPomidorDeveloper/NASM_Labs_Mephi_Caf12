@@ -2,7 +2,7 @@ section .data
     one dd 1.0             ; Константа 2.0 для float
     neg_one dd -1.0
 
-    filename db "numbers.txt", 0     ; Имя файла
+    ; filename db "numbers.txt", 0     ; Имя файла
     mode db "w", 0                   ; Режим открытия - запись
 
     format db "%d %.6f", 10, 0
@@ -17,12 +17,12 @@ section .text
     extern scanf
 
 ; Функция calculate
-; Вход: xmm0 = x, xmm1 = число, xmm2 = точность
+; Вход: xmm0 = x, xmm1 = число, xmm2 = точность, rdi = указатеь на имя файла
 ; Выход: xmm0 = результат (float), eax = ошибка
 calculate:
     push rbp
     mov rbp, rsp
-    sub rsp, 64
+    sub rsp, 32
 
     movss dword[rbp-4], xmm0    ; x
     movss dword[rbp-8], xmm1    ; число
@@ -32,7 +32,6 @@ calculate:
     movss dword[rbp-16], xmm2   ; точность
 
     ; Открываем файл
-    mov rdi, filename
     mov rsi, mode
     call fopen
     
@@ -56,6 +55,7 @@ calculate:
     call fprintf
 
     mov dword[rbp-32], 0    ; Номер члена (n)
+    
 ser_loop:
     movss xmm4, dword[rbp-24]   ; Сумма
     movss xmm3, dword[rbp-20]   ; Прочшлый член
@@ -72,6 +72,7 @@ start:
     mov eax, dword[rbp-32]      ; n
     add eax, 1                  ; n + 1
     mul eax                     ; (n + 1)^2
+    cdq
     add eax, eax                ; 2(n + 1)^2
     cvtsi2ss xmm5, eax
     mulss xmm5, dword[rbp-4]    ; 2(n + 1)^2 * x
@@ -90,10 +91,10 @@ start:
                                 ;  (n + 2)(2n + 3)
 
     mulss xmm3, xmm5            ; 2(n + 1)^2 * x^2
-                                ; ---------------- * prev = nov
+                                ; ---------------- * prev = new
                                 ;  (n + 2)(2n + 3)
 
-    addss xmm4, xmm3            ; sum + nov
+    addss xmm4, xmm3            ; sum + new
 
     movss dword[rbp-20], xmm3   ; Прошлый член
     movss dword[rbp-24], xmm4   ; sum
@@ -120,6 +121,9 @@ end:
     ret
 
 overflow_error:
+    mov eax, dword[rbp-28]
+    mov rdi, rax
+    call fclose
     ; Очищаем стек и возвращаем специальное значение
     mov rax, -1 ; Индикатор переполнения
     leave
